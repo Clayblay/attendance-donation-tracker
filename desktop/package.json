@@ -1,0 +1,28 @@
+{
+  "name": "attendance-tracker-desktop",
+  "productName": "Attendance Tracker",
+  "version": "1.0.0",
+  "description": "Desktop (Windows and macOS) shell for Attendance Tracker",
+  "author": "Your Name <you@example.com>",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.example.attendancetracker",
+    "productName": "Attendance Tracker",
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["main.js", "web/**/*"],
+    "win": { "target": ["nsis"] },
+    "mac": { "target": ["dmg"], "category": "public.app-category.productivity" }
+  }
+}

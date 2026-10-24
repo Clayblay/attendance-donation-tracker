@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Attendance Tracker",
+    "slug": "attendance-donation-tracker",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "scheme": "attendancetracker",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.attendancetracker"
+    },
+    "android": {
+      "package": "com.example.attendancetracker",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#14302B"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#14302B"
+        }
+      ],
+      "expo-font",
+      "expo-status-bar"
+    ]
+  }
+}
