@@ -1,6 +1,6 @@
 import { DEFAULT_PALETTE_ID, PALETTES } from '@/constants/palettes';
 import { normalizeHex } from '@/lib/color';
-import { DashboardItemId, DashboardItemPref, Settings, ThemeMode } from '@/lib/types';
+import { DashboardItemId, DashboardItemPref, EmailApp, Settings, ThemeMode } from '@/lib/types';
 
 export const DASHBOARD_ITEMS: { id: DashboardItemId; label: string; description: string }[] = [
   { id: 'shortcuts', label: 'Quick links', description: 'Buttons for Reports and Giving statements' },
@@ -19,11 +19,13 @@ export function defaultSettings(): Settings {
     themeMode: 'system',
     paletteId: DEFAULT_PALETTE_ID,
     customAccent: '',
+    emailApp: 'default',
     dashboard: DEFAULT_DASHBOARD.map((i) => ({ ...i })),
   };
 }
 
 const MODES: ThemeMode[] = ['system', 'light', 'dark'];
+const EMAIL_APPS: EmailApp[] = ['default', 'gmail', 'outlook'];
 
 /** Fills in anything missing or invalid, so older saved data and bad values never break the app. */
 export function normalizeSettings(raw: Partial<Settings> | undefined): Settings {
@@ -50,6 +52,7 @@ export function normalizeSettings(raw: Partial<Settings> | undefined): Settings 
     themeMode: MODES.includes(raw.themeMode as ThemeMode) ? (raw.themeMode as ThemeMode) : base.themeMode,
     paletteId: PALETTES.some((p) => p.id === raw.paletteId) ? (raw.paletteId as string) : base.paletteId,
     customAccent: raw.customAccent ? normalizeHex(raw.customAccent) ?? '' : '',
+    emailApp: EMAIL_APPS.includes(raw.emailApp as EmailApp) ? (raw.emailApp as EmailApp) : 'default',
     dashboard,
   };
 }

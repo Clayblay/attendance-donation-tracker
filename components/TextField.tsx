@@ -4,7 +4,7 @@ import { spacing, useTheme } from '@/constants/theme';
 
 type Props = Pick<
   TextInputProps,
-  'value' | 'onChangeText' | 'placeholder' | 'keyboardType' | 'autoCapitalize' | 'autoFocus' | 'onSubmitEditing' | 'multiline' | 'onSelectionChange' | 'selection'
+  'value' | 'onChangeText' | 'placeholder' | 'keyboardType' | 'autoCapitalize' | 'autoFocus' | 'onSubmitEditing' | 'multiline' | 'onSelectionChange' | 'selection' | 'secureTextEntry'
 > & {
   label?: string;
   error?: string;

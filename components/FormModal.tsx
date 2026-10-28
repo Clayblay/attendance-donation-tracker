@@ -8,10 +8,12 @@ type Props = {
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** A wider card, for tables and reports. */
+  wide?: boolean;
 };
 
 /** A centred dialog card that works the same on Android, web and desktop. */
-export default function FormModal({ visible, title, onClose, children, footer }: Props) {
+export default function FormModal({ visible, title, onClose, children, footer, wide }: Props) {
   const theme = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -19,7 +21,7 @@ export default function FormModal({ visible, title, onClose, children, footer }:
         <Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}>
           <Pressable
             onPress={() => {}}
-            style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.card, wide && styles.wide, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
             <ScrollView keyboardShouldPersistTaps="handled" style={styles.body}>
@@ -44,6 +46,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.lg,
   },
+  wide: { maxWidth: 920 },
   title: { fontSize: 20, fontWeight: '700', marginBottom: spacing.md },
   body: { flexGrow: 0 },
   footer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.md },

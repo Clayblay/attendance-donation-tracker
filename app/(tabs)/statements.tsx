@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Button from '@/components/Button';
 import Chip from '@/components/Chip';
+import SendQueueModal from '@/components/SendQueueModal';
 import IdBadge from '@/components/IdBadge';
 import Screen from '@/components/Screen';
 import StatementModal from '@/components/StatementModal';
@@ -22,6 +24,7 @@ export default function StatementsScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState<Person | null>(null);
+  const [queueOpen, setQueueOpen] = useState(false);
 
   const peopleById = useMemo(() => new Map(data.people.map((p) => [p.id, p])), [data.people]);
   const yearGifts = useMemo(() => data.gifts.filter((g) => g.date.startsWith(`${year}-`)), [data.gifts, year]);
@@ -50,6 +53,7 @@ export default function StatementsScreen() {
       title="Giving statements"
       subtitle="A yearly summary of each donor's gifts"
       back={{ label: 'Settings', to: '/settings' }}
+      headerRight={<Button title={rows.length - sentCount > 0 ? `Send statements (${rows.length - sentCount})` : 'Send statements'} icon="mail-outline" disabled={rows.length - sentCount === 0} onPress={() => setQueueOpen(true)} />}
     >
       <View style={styles.yearRow}>
         <Pressable accessibilityLabel="Previous year" onPress={() => setYear(year - 1)} style={styles.arrow}>
@@ -75,6 +79,12 @@ export default function StatementsScreen() {
           style={[styles.searchInput, { color: theme.text }]}
         />
       </View>
+
+      {rows.length > 0 && rows.length === sentCount ? (
+        <Text style={{ color: theme.textMuted, fontSize: 13, marginBottom: spacing.md }}>
+          All {year} statements are marked as sent, so there is nothing left to send.
+        </Text>
+      ) : null}
 
       <View style={styles.chips}>
         <Chip label={`All (${rows.length})`} selected={filter === 'all'} onPress={() => setFilter('all')} />
@@ -129,6 +139,8 @@ export default function StatementsScreen() {
       <Text style={{ color: theme.textMuted, fontSize: 13, marginTop: spacing.sm }}>
         Statements show what you have recorded. If you need tax wording for receipts, add it to the template under Settings, then Letter templates.
       </Text>
+
+      {queueOpen ? <SendQueueModal kind="statement" year={year} onClose={() => setQueueOpen(false)} /> : null}
 
       {open ? <StatementModal person={open} year={year} onClose={() => setOpen(null)} /> : null}
     </Screen>

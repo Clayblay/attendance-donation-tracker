@@ -5,6 +5,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Button from '@/components/Button';
 import GiftForm from '@/components/GiftForm';
 import IdBadge from '@/components/IdBadge';
+import ReportsModal from '@/components/ReportsModal';
+import SendQueueModal from '@/components/SendQueueModal';
 import Screen from '@/components/Screen';
 import Widget from '@/components/Widget';
 import { spacing, typeColor, useTheme } from '@/constants/theme';
@@ -53,6 +55,8 @@ export default function DashboardScreen() {
   const [year, setYear] = useState(thisYear);
   const [showAllDonors, setShowAllDonors] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
   const [lastUsed, setLastUsed] = useState<{ date: string; givingId: string; method: PaymentMethod }>({
     date: today,
     givingId: '',
@@ -67,6 +71,7 @@ export default function DashboardScreen() {
     [data.attendance]
   );
 
+  const needThanks = data.gifts.filter((g) => g.personId && !g.thankedAt && peopleById.has(g.personId)).length;
   const openTodos = data.notes.filter((n) => isTodo(n) && !n.done).length;
   const pinnedNotes = data.notes.filter((n) => n.pinned).length;
 
@@ -104,8 +109,9 @@ export default function DashboardScreen() {
       case 'shortcuts':
         return (
           <View style={styles.shortcuts}>
-            <Button title="Reports" icon="bar-chart-outline" variant="secondary" onPress={() => router.push('/summary')} />
+            <Button title="Reports" icon="bar-chart-outline" variant="secondary" onPress={() => setReportsOpen(true)} />
             <Button title="Giving statements" icon="reader-outline" variant="secondary" onPress={() => router.push('/statements')} />
+            <Button title={`Send thank-yous${needThanks ? ` (${needThanks})` : ''}`} icon="mail-outline" variant="secondary" onPress={() => setQueueOpen(true)} />
           </View>
         );
 
@@ -287,6 +293,9 @@ export default function DashboardScreen() {
           <Text style={{ color: theme.textMuted }}>Go to Settings, then Dashboard layout, to show sections again.</Text>
         </View>
       ) : null}
+
+      {reportsOpen ? <ReportsModal onClose={() => setReportsOpen(false)} /> : null}
+      {queueOpen ? <SendQueueModal kind="thankyou" onClose={() => setQueueOpen(false)} /> : null}
 
       {recording ? (
         <GiftForm gift={null} defaults={lastUsed} onSave={save} onClose={() => setRecording(false)} />

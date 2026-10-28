@@ -77,9 +77,18 @@ scripts/copy-web.js        copies the web export into desktop/web
 5. Attendance (event types, check-off list plus headcount) - done
 6. Notes (general, or attached to a person, gift or attendance record) - done
 7. Templates: 7a colour palettes + dashboard layout - done; 7b thank-you letters - done; 7c yearly giving statements - done; 7d printable reports - done
-8. Logins, forgotten username/password recovery, emailing thank-you letters
-9. Extras (export, backup, statements, charts)
+8. Online account: 8a login + password reset - done; 8b sync data across devices - done; 8c step through unsent thank-yous and statements (opens your own email app) - done
+9. Extras: 9a backup and restore - done; 9b import people from a spreadsheet; 9c giving goals; 9d recurring gifts; 9e birthdays and anniversaries; 9f PIN lock; 9g charts
 
 ## Where data is stored
 Data is saved on the device you use (browser storage on web, app storage on Android, the app window on
 desktop). Each device has its own copy until online sync is added in Step 8.
+
+## Online account (Step 8)
+See `docs/SUPABASE_SETUP.md`. After the app is updated, install the two new packages once:
+```bash
+npx expo install @supabase/supabase-js react-native-url-polyfill
+```
+
+## Choosing your email program
+Settings, then Email app: pick your default mail program, Gmail or Outlook.com. Gmail and Outlook.com open in the browser.

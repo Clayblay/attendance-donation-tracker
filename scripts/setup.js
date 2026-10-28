@@ -21,7 +21,7 @@ try {
     'npx expo install expo-router expo-constants expo-linking expo-status-bar expo-font ' +
       'expo-splash-screen expo-system-ui @react-native-async-storage/async-storage react-native-screens ' +
       'react-native-safe-area-context react-native-gesture-handler react-native-web react-dom ' +
-      '@expo/vector-icons expo-print'
+      '@expo/vector-icons expo-print @supabase/supabase-js react-native-url-polyfill'
   );
   run('npm install --save-dev typescript@~6.0.3 @types/react@~19.2.0');
   run('npx expo install --fix');

@@ -27,9 +27,45 @@ const emptyData = (): AppData => ({
   counters: { ...ID_START },
 });
 
+/** Turns saved or downloaded data into a complete, valid AppData (filling in anything missing). */
+export function mergeLoaded(parsed: Partial<AppData>, settings?: Settings): AppData {
+  const base = emptyData();
+  const merged: AppData = {
+    ...base,
+    ...parsed,
+    version: 1,
+    counters: {
+      member: Math.max(ID_START.member, parsed.counters?.member ?? 0),
+      contributor: Math.max(ID_START.contributor, parsed.counters?.contributor ?? 0),
+      visitor: Math.max(ID_START.visitor, parsed.counters?.visitor ?? 0),
+    },
+    people: Array.isArray(parsed.people) ? parsed.people : [],
+    // Data saved before Step 2 has no giving list: start with the defaults.
+    givingOpportunities: Array.isArray(parsed.givingOpportunities) ? parsed.givingOpportunities : base.givingOpportunities,
+    gifts: Array.isArray(parsed.gifts) ? parsed.gifts : [],
+    eventTypes: Array.isArray(parsed.eventTypes) ? parsed.eventTypes : base.eventTypes,
+    attendance: Array.isArray(parsed.attendance) ? parsed.attendance : [],
+    notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+    templates: base.templates,
+    statementSeeded: true,
+    statementsSent: parsed.statementsSent && typeof parsed.statementsSent === 'object' ? parsed.statementsSent : {},
+    settings: settings ?? normalizeSettings(parsed.settings),
+  };
+  // Templates: keep the saved ones; add the starter statement template once for older data.
+  if (Array.isArray(parsed.templates)) {
+    merged.templates = parsed.templates;
+    if (parsed.statementSeeded !== true) merged.templates = [...parsed.templates, ...defaultStatementTemplates()];
+  }
+  return merged;
+}
+
 type DataContextValue = {
   loaded: boolean;
   data: AppData;
+  /** Goes up by one each time you change records (used by sync). */
+  changeCount: number;
+  getData: () => AppData;
+  replaceData: (incoming: Partial<AppData>, counted?: boolean) => void;
   setOrgName: (name: string) => void;
   /** The ID the next person of this type would receive. */
   peekNextId: (type: PersonType) => string;
@@ -65,6 +101,7 @@ const DataContext = createContext<DataContextValue | null>(null);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>(emptyData);
   const [loaded, setLoaded] = useState(false);
+  const [changeCount, setChangeCount] = useState(0);
   const ref = useRef<AppData>(data); // always the latest data, even between renders
 
   useEffect(() => {
@@ -74,35 +111,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw) as Partial<AppData>;
-          const base = emptyData();
-          const merged: AppData = {
-            ...base,
-            ...parsed,
-            version: 1,
-            counters: {
-              member: Math.max(ID_START.member, parsed.counters?.member ?? 0),
-              contributor: Math.max(ID_START.contributor, parsed.counters?.contributor ?? 0),
-              visitor: Math.max(ID_START.visitor, parsed.counters?.visitor ?? 0),
-            },
-            people: Array.isArray(parsed.people) ? parsed.people : [],
-            // Data saved before Step 2 has no giving list: start with the defaults.
-            givingOpportunities: Array.isArray(parsed.givingOpportunities)
-              ? parsed.givingOpportunities
-              : base.givingOpportunities,
-            gifts: Array.isArray(parsed.gifts) ? parsed.gifts : [],
-            eventTypes: Array.isArray(parsed.eventTypes) ? parsed.eventTypes : base.eventTypes,
-            attendance: Array.isArray(parsed.attendance) ? parsed.attendance : [],
-            notes: Array.isArray(parsed.notes) ? parsed.notes : [],
-            templates: base.templates,
-            statementSeeded: true,
-            statementsSent: parsed.statementsSent && typeof parsed.statementsSent === 'object' ? parsed.statementsSent : {},
-            settings: normalizeSettings(parsed.settings),
-          };
-          // Templates: keep the saved ones; add the starter statement template once for older data.
-          if (Array.isArray(parsed.templates)) {
-            merged.templates = parsed.templates;
-            if (parsed.statementSeeded !== true) merged.templates = [...parsed.templates, ...defaultStatementTemplates()];
-          }
+          const merged = mergeLoaded(parsed);
           ref.current = merged;
           if (!cancelled) setData(merged);
         }
@@ -116,9 +125,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const commit = useCallback((next: AppData) => {
+  /** Save new data. `counted` is false for device-only choices (like colours) that should not be synced. */
+  const commit = useCallback((next: AppData, counted: boolean = true) => {
     ref.current = next;
     setData(next);
+    if (counted) setChangeCount((c) => c + 1);
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch((e) =>
       console.warn('Could not save data', e)
     );
@@ -493,16 +504,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const updateSettings = useCallback(
     (patch: Partial<Settings>) => {
       const cur = ref.current;
-      commit({ ...cur, settings: normalizeSettings({ ...cur.settings, ...patch }) });
+      commit({ ...cur, settings: normalizeSettings({ ...cur.settings, ...patch }) }, false);
     },
     [commit]
   );
+
+  const getData = useCallback(() => ref.current, []);
+
+  /** Replace everything with downloaded data. Colours and layout on this device are kept. Not counted as a change. */
+  const replaceData = useCallback((incoming: Partial<AppData>, counted: boolean = false) => {
+    const merged = mergeLoaded(incoming, ref.current.settings);
+    ref.current = merged;
+    setData(merged);
+    if (counted) setChangeCount((c) => c + 1);
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged)).catch((e) => console.warn('Could not save data', e));
+  }, []);
 
   const resetAll = useCallback(async () => {
     // Erasing data keeps your look, layout and letter templates.
     const fresh: AppData = { ...emptyData(), settings: ref.current.settings, templates: ref.current.templates, statementSeeded: true };
     ref.current = fresh;
     setData(fresh);
+    setChangeCount((c) => c + 1);
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
     } catch (e) {
@@ -514,6 +537,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     () => ({
       loaded,
       data,
+      changeCount,
+      getData,
+      replaceData,
       setOrgName,
       peekNextId,
       addPerson,
@@ -542,7 +568,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       updateSettings,
       resetAll,
     }),
-    [loaded, data, setOrgName, peekNextId, addPerson, updatePerson, deletePerson, addGiving, updateGiving, deleteGiving, addGift, updateGift, deleteGift, addEventType, updateEventType, deleteEventType, addAttendance, updateAttendance, deleteAttendance, addNote, updateNote, deleteNote, addTemplate, updateTemplate, deleteTemplate, markGiftThanked, markStatementSent, updateSettings, resetAll]
+    [loaded, data, changeCount, getData, replaceData, setOrgName, peekNextId, addPerson, updatePerson, deletePerson, addGiving, updateGiving, deleteGiving, addGift, updateGift, deleteGift, addEventType, updateEventType, deleteEventType, addAttendance, updateAttendance, deleteAttendance, addNote, updateNote, deleteNote, addTemplate, updateTemplate, deleteTemplate, markGiftThanked, markStatementSent, updateSettings, resetAll]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

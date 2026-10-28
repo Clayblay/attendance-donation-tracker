@@ -8,6 +8,7 @@ import Chip from '@/components/Chip';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import GiftForm from '@/components/GiftForm';
 import LetterModal from '@/components/LetterModal';
+import SendQueueModal from '@/components/SendQueueModal';
 import IdBadge from '@/components/IdBadge';
 import NoteButton from '@/components/NoteButton';
 import NotesHost from '@/components/NotesHost';
@@ -34,6 +35,7 @@ export default function HistoryScreen() {
   const [notesFor, setNotesFor] = useState<Gift | null>(null);
   const [letterFor, setLetterFor] = useState<Gift | null>(null);
   const [needsThanks, setNeedsThanks] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
   const [lastUsed, setLastUsed] = useState<{ date: string; givingId: string; method: PaymentMethod }>({
     date: todayStr(),
     givingId: '',
@@ -144,6 +146,7 @@ export default function HistoryScreen() {
           <Chip key={g.id} label={g.name} selected={givingFilter === g.id} onPress={() => setGivingFilter(g.id)} />
         ))}
         <Chip label="Needs thank-you" selected={needsThanks} color={theme.gold} onPress={() => setNeedsThanks((v) => !v)} />
+        {needsThanks && filtered.length > 0 ? <Button title="Start sending" icon="mail-outline" onPress={() => setQueueOpen(true)} /> : null}
       </View>
 
       <View style={[styles.search, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
@@ -227,6 +230,8 @@ export default function HistoryScreen() {
           </View>
         ))
       )}
+
+      {queueOpen ? <SendQueueModal kind="thankyou" onClose={() => setQueueOpen(false)} /> : null}
 
       {letterFor ? <LetterModal gift={letterFor} onClose={() => setLetterFor(null)} /> : null}
 

@@ -5,7 +5,9 @@ import Chip from '@/components/Chip';
 import FormModal from '@/components/FormModal';
 import TextField from '@/components/TextField';
 import { spacing, useTheme } from '@/constants/theme';
+import EmailAppPicker from '@/components/EmailAppPicker';
 import { buildGiftValues, renderTemplate } from '@/lib/letters';
+import { buildMailUrl, openedMessage } from '@/lib/mail';
 import { useData } from '@/lib/store';
 import { Gift } from '@/lib/types';
 
@@ -39,11 +41,10 @@ export default function LetterModal({ gift, onClose }: Props) {
   }
 
   async function openEmail() {
-    const to = person?.email ? encodeURIComponent(person.email) : '';
-    const url = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\n/g, '\r\n'))}`;
+    const url = buildMailUrl(data.settings.emailApp, person?.email ?? '', subject, body);
     try {
       await Linking.openURL(url);
-      setStatus('Opened your email app. Send the message there, then tick "Thank-you sent" below.');
+      setStatus(`${openedMessage(data.settings.emailApp)} Then tick "Thank-you sent" below.`);
     } catch {
       setStatus('Could not open an email app on this device. Try Share or Copy instead.');
     }
@@ -94,6 +95,7 @@ export default function LetterModal({ gift, onClose }: Props) {
       <TextField label="Subject" value={subject} onChangeText={setSubject} />
       <TextField label="Letter (you can edit this before sending)" value={body} onChangeText={setBody} multiline />
 
+      <EmailAppPicker />
       <View style={styles.chips}>
         <Button title="Email" icon="mail-outline" onPress={openEmail} />
         <Button title="Share" icon="share-outline" variant="secondary" onPress={shareIt} />

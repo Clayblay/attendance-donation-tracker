@@ -113,6 +113,8 @@ export type LetterTemplate = {
 
 export type LetterTemplateInput = Pick<LetterTemplate, 'name' | 'subject' | 'body'>;
 
+export type EmailApp = 'default' | 'gmail' | 'outlook';
+
 export type ThemeMode = 'system' | 'light' | 'dark';
 
 export type DashboardItemId = 'shortcuts' | 'people' | 'lastAttendance' | 'notes' | 'today' | 'byOccasion' | 'byDonor';
@@ -123,6 +125,8 @@ export type Settings = {
   paletteId: string;
   /** Optional custom accent colour as #RRGGBB, or '' for the palette's own. */
   customAccent: string;
+  /** Which mail program the Email buttons open. */
+  emailApp: EmailApp;
   /** Order and visibility of the Dashboard sections. */
   dashboard: DashboardItemPref[];
 };

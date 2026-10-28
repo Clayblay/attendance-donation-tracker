@@ -6,10 +6,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Button from '@/components/Button';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import FormModal from '@/components/FormModal';
+import BackupModal from '@/components/BackupModal';
+import EmailAppPicker from '@/components/EmailAppPicker';
+import OnlineAccountModal from '@/components/OnlineAccountModal';
+import { EMAIL_APP_LABEL } from '@/lib/mail';
+import ReportsModal from '@/components/ReportsModal';
 import Screen from '@/components/Screen';
 import TextField from '@/components/TextField';
 import { getPalette } from '@/constants/palettes';
 import { spacing, useTheme } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
+import { syncLabel, useSync } from '@/lib/sync';
 import { useData } from '@/lib/store';
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -54,11 +61,23 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { data, setOrgName, resetAll } = useData();
   const [editingOrg, setEditingOrg] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [emailAppOpen, setEmailAppOpen] = useState(false);
+  const [backupOpen, setBackupOpen] = useState(false);
+  const auth = useAuth();
+  const sync = useSync();
   const [erasing, setErasing] = useState(false);
 
   return (
     <Screen title="Settings" subtitle="Preferences and app information">
       <View style={[styles.group, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Row
+          icon="cloud-outline"
+          title="Online account"
+          value={auth.status === 'signedIn' ? `${auth.email}${syncLabel(sync.info.state) ? ` · ${syncLabel(sync.info.state)}` : ''}` : auth.configured ? 'Not signed in' : 'Not connected'}
+          onPress={() => setAccountOpen(true)}
+        />
         <Row icon="business-outline" title="Organization name" value={data.orgName || 'Not set'} onPress={() => setEditingOrg(true)} />
         <Row
           icon="gift-outline"
@@ -79,9 +98,11 @@ export default function SettingsScreen() {
           value={`${getPalette(data.settings.paletteId).name}${data.settings.customAccent ? ' + custom' : ''}`}
           onPress={() => router.push('/appearance')}
         />
-        <Row icon="bar-chart-outline" title="Reports" onPress={() => router.push('/summary')} />
+        <Row icon="bar-chart-outline" title="Reports" onPress={() => setReportsOpen(true)} />
         <Row icon="reader-outline" title="Giving statements" onPress={() => router.push('/statements')} />
         <Row icon="mail-outline" title="Letter templates" value={String(data.templates.length)} onPress={() => router.push('/templates')} />
+        <Row icon="download-outline" title="Backup & restore" onPress={() => setBackupOpen(true)} />
+        <Row icon="send-outline" title="Email app" value={EMAIL_APP_LABEL[data.settings.emailApp]} onPress={() => setEmailAppOpen(true)} />
         <Row icon="grid-outline" title="Dashboard layout" onPress={() => router.push('/dashboard-layout')} />
         <Row icon="cash-outline" title="Currency" value="USD" />
         <Row icon="people-outline" title="People on record" value={String(data.people.length)} />
@@ -94,6 +115,21 @@ export default function SettingsScreen() {
       <View style={styles.danger}>
         <Button title="Erase all data" variant="danger" icon="trash-outline" onPress={() => setErasing(true)} />
       </View>
+
+      {backupOpen ? <BackupModal onClose={() => setBackupOpen(false)} /> : null}
+
+      {emailAppOpen ? (
+        <FormModal visible title="Email app" onClose={() => setEmailAppOpen(false)} footer={<Button title="Done" onPress={() => setEmailAppOpen(false)} />}>
+          <Text style={{ color: theme.textMuted, lineHeight: 21, marginBottom: spacing.md }}>
+            Choose which mail program opens when you tap Email on a letter or statement. Gmail and Outlook.com open in your web browser, so you need to be signed in there. This choice is saved on this device.
+          </Text>
+          <EmailAppPicker />
+        </FormModal>
+      ) : null}
+
+      {accountOpen ? <OnlineAccountModal onClose={() => setAccountOpen(false)} /> : null}
+
+      {reportsOpen ? <ReportsModal onClose={() => setReportsOpen(false)} /> : null}
 
       {editingOrg ? (
         <OrgNameForm
@@ -109,7 +145,7 @@ export default function SettingsScreen() {
       {erasing ? (
         <ConfirmDialog
           title="Erase all data?"
-          message="This removes your organization name, everyone on record, your giving opportunities, event types, all recorded gifts, all attendance records, and all notes from this device. Your colours, dashboard layout and letter templates are kept. It cannot be undone."
+          message="This removes your organization name, everyone on record, your giving opportunities, event types, all recorded gifts, all attendance records, and all notes from this device. Your colours and dashboard layout are kept. If you are signed in to your online account, the online copy is erased too the next time it syncs. It cannot be undone."
           confirmLabel="Erase everything"
           destructive
           onCancel={() => setErasing(false)}

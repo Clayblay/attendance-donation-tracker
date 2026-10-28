@@ -5,7 +5,9 @@ import Chip from '@/components/Chip';
 import FormModal from '@/components/FormModal';
 import TextField from '@/components/TextField';
 import { spacing, useTheme } from '@/constants/theme';
+import EmailAppPicker from '@/components/EmailAppPicker';
 import { buildStatementValues, renderTemplate } from '@/lib/letters';
+import { buildMailUrl, openedMessage } from '@/lib/mail';
 import { buildStatementHtml, printHtml } from '@/lib/print';
 import { useData } from '@/lib/store';
 import { Person } from '@/lib/types';
@@ -38,11 +40,10 @@ export default function StatementModal({ person, year, onClose }: Props) {
   }
 
   async function openEmail() {
-    const to = person.email ? encodeURIComponent(person.email) : '';
-    const url = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\n/g, '\r\n'))}`;
+    const url = buildMailUrl(data.settings.emailApp, person.email, subject, body);
     try {
       await Linking.openURL(url);
-      setStatus('Opened your email app. Send it there, then tick "Statement sent" below.');
+      setStatus(`${openedMessage(data.settings.emailApp)} Then tick "Statement sent" below.`);
     } catch {
       setStatus('Could not open an email app on this device. Try Share, Copy or Print instead.');
     }
@@ -107,6 +108,7 @@ export default function StatementModal({ person, year, onClose }: Props) {
       <TextField label="Title / email subject" value={subject} onChangeText={setSubject} />
       <TextField label="Statement (you can edit this before sending)" value={body} onChangeText={setBody} multiline />
 
+      <EmailAppPicker />
       <View style={styles.chips}>
         <Button title="Print / PDF" icon="print-outline" onPress={printIt} />
         <Button title="Email" icon="mail-outline" variant="secondary" onPress={openEmail} />
