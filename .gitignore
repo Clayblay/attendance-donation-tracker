@@ -17,3 +17,44 @@ ios/
 desktop/node_modules/
 desktop/web/
 desktop/release/
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>node_modules/
+'node_modules' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>.expo/
+'.expo' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>dist/
+'dist' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>web-build/
+'web-build' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>*.tsbuildinfo
+'*.tsbuildinfo' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>.env
+'.env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>.env*.local
+'.env*.local' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Tracker SDK 57-s\attendance-tracker-sdk57>npm-debug.*
+'npm-debug.*' is not recognized as an internal or external command,
+operable program or batch file.
+node_modules/
+.expo/
+dist/
+web-build/
+*.tsbuildinfo
+.env
+.env*.local
+npm-debug.*
+.DS_Store
